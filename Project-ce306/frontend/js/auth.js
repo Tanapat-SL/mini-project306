@@ -2,6 +2,7 @@
 
 let currentUser = null;
 let currentToken = localStorage.getItem('token') || null;
+let realtimeInterval = null;
 
 function checkInitialAuth() {
     if (currentToken) { currentUser = { username: localStorage.getItem('username'), role: localStorage.getItem('user_role') }; renderAuth(); }
@@ -23,9 +24,33 @@ async function handleLogin(e) {
     } catch { showAlert('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
 }
 
-function logout() { localStorage.clear(); currentToken=null; currentUser=null; renderLoginState(); }
+function logout() {
+    stopRealtimeSync();
+    const savedTheme = localStorage.getItem('theme');
+    localStorage.clear();
+    if (savedTheme) localStorage.setItem('theme', savedTheme);
+    currentToken=null; currentUser=null;
+    renderLoginState();
+}
+
+function startRealtimeSync() {
+    stopRealtimeSync();
+    realtimeInterval = setInterval(() => {
+        if (!currentToken || document.hidden) return;
+        loadReports(true);
+        loadAnnouncements(true);
+    }, 5000); // ตรวจสอบข้อมูลใหม่ทุก 5 วินาที
+}
+
+function stopRealtimeSync() {
+    if (realtimeInterval) {
+        clearInterval(realtimeInterval);
+        realtimeInterval = null;
+    }
+}
 
 function renderLoginState() {
+    stopRealtimeSync();
     document.getElementById('view-login').classList.remove('hidden');
     document.getElementById('view-student').classList.add('hidden');
     document.getElementById('view-admin').classList.add('hidden');
@@ -39,10 +64,10 @@ function renderAuth() {
     document.getElementById('nav-user-badge').innerHTML = `<i class="fa-solid fa-user-circle"></i> ${currentUser.username} (${currentUser.role})`;
     if (currentUser.role === 'admin') {
         document.getElementById('view-admin').classList.remove('hidden');
-        renderAnnouncementsAdmin();
     } else {
         document.getElementById('view-student').classList.remove('hidden');
-        renderAnnouncementsStudent();
     }
     loadReports();
+    loadAnnouncements();
+    startRealtimeSync();
 }

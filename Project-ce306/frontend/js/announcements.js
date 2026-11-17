@@ -1,18 +1,90 @@
-// ประกาศ (ตอนนี้เก็บในหน่วยความจำของเบราว์เซอร์ ยังไม่ได้ต่อฐานข้อมูล เหมือนของเดิม)
+// จัดการประกาศ (เชื่อมต่อ API และซิงค์ข้อมูลอัตโนมัติ)
 
-let mockAnnouncements = [{ id: 1, title: 'แจ้งล้างแอร์', content: 'ทีมช่างจะเข้า...', date: 'วันนี้' }];
+let globalAnnouncements = [];
+let lastAnnouncementsSnapshot = '';
+
+async function loadAnnouncements(isSilent = false) {
+    if (!currentToken) return;
+    try {
+        const res = await fetch('/api/announcements', {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const snapshot = JSON.stringify(data);
+        if (isSilent && snapshot === lastAnnouncementsSnapshot) return;
+        lastAnnouncementsSnapshot = snapshot;
+        globalAnnouncements = data;
+
+        if (currentUser?.role === 'admin') renderAnnouncementsAdmin();
+        else renderAnnouncementsStudent();
+    } catch (err) {
+        if (!isSilent) console.error('Load announcements error:', err);
+    }
+}
 
 function renderAnnouncementsStudent() {
-    document.getElementById('student-announcements').innerHTML = mockAnnouncements.map(a =>
-        `<div class="p-3 bg-slate-50 rounded border mb-2"><div class="font-bold text-sm">${escapeHtml(a.title)}</div><div class="text-xs text-slate-600">${escapeHtml(a.content)}</div></div>`).join('');
+    const el = document.getElementById('student-announcements');
+    if (!el) return;
+    if (!globalAnnouncements.length) {
+        el.innerHTML = `<div class="text-xs text-slate-400 py-4 text-center">ยังไม่มีประกาศจากหอพักในขณะนี้</div>`;
+        return;
+    }
+    el.innerHTML = globalAnnouncements.map(a => `
+        <div class="p-3.5 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/70 dark:border-slate-700">
+            <div class="flex justify-between items-start gap-2">
+                <div class="font-bold text-sm text-slate-800 dark:text-slate-100">${escapeHtml(a.title)}</div>
+                <span class="text-[11px] text-slate-400 whitespace-nowrap">${escapeHtml(a.date || 'ล่าสุด')}</span>
+            </div>
+            <div class="text-xs text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line">${escapeHtml(a.content)}</div>
+        </div>
+    `).join('');
 }
+
 function renderAnnouncementsAdmin() {
-    document.getElementById('admin-announcements-list').innerHTML = mockAnnouncements.map(a =>
-        `<div class="p-3 bg-white rounded border flex justify-between mb-2"><div><div class="font-bold text-sm">${escapeHtml(a.title)}</div><div class="text-xs text-slate-600">${escapeHtml(a.content)}</div></div><button onclick="deleteAnnouncement(${a.id})" class="text-rose-500 text-xs"><i class="fa-solid fa-trash"></i></button></div>`).join('');
+    const el = document.getElementById('admin-announcements-list');
+    if (!el) return;
+    if (!globalAnnouncements.length) {
+        el.innerHTML = `<div class="text-xs text-slate-400 py-4 text-center">ยังไม่มีประกาศในระบบ</div>`;
+        return;
+    }
+    el.innerHTML = globalAnnouncements.map(a => `
+        <div class="p-4 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-between items-start gap-3">
+            <div>
+                <div class="font-bold text-sm text-slate-800 dark:text-slate-100">${escapeHtml(a.title)} <span class="text-[11px] font-normal text-slate-400 ml-2">${escapeHtml(a.date || '')}</span></div>
+                <div class="text-xs text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line">${escapeHtml(a.content)}</div>
+            </div>
+            <button onclick="deleteAnnouncement(${a.id})" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 px-2.5 py-1.5 rounded-lg text-xs transition"><i class="fa-solid fa-trash"></i></button>
+        </div>
+    `).join('');
 }
-function handleCreateAnnouncement(e) {
+
+async function handleCreateAnnouncement(e) {
     e.preventDefault();
-    mockAnnouncements.unshift({ id: Date.now(), title: document.getElementById('ann-title').value, content: document.getElementById('ann-content').value, date: 'วันนี้' });
-    e.target.reset(); renderAnnouncementsAdmin(); showAlert('โพสต์ประกาศแล้ว', 'success');
+    const title = document.getElementById('ann-title').value.trim();
+    const content = document.getElementById('ann-content').value.trim();
+    const res = await fetch('/api/announcements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+        body: JSON.stringify({ title, content })
+    });
+    if (res.ok) {
+        e.target.reset();
+        await loadAnnouncements();
+        showAlert('โพสต์ประกาศเรียบร้อยแล้ว', 'success');
+    } else {
+        showAlert('ไม่สามารถโพสต์ประกาศได้', 'error');
+    }
 }
-function deleteAnnouncement(id) { mockAnnouncements = mockAnnouncements.filter(a => a.id !== id); renderAnnouncementsAdmin(); }
+
+async function deleteAnnouncement(id) {
+    if (!confirm('ยืนยันการลบประกาศนี้?')) return;
+    const res = await fetch(`/api/announcements/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${currentToken}` }
+    });
+    if (res.ok) {
+        await loadAnnouncements();
+        showAlert('ลบประกาศแล้ว', 'success');
+    }
+}

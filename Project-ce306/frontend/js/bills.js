@@ -6,7 +6,9 @@ let lastBillsSnapshot = '';
 async function loadBills(isSilent = false) {
     if (!currentToken) return;
     try {
-        const res = await fetch('/api/bills', { headers: { 'Authorization': `Bearer ${currentToken}` } });
+        const res = await fetch('/api/bills', {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
         if (!res.ok) return;
         const data = await res.json();
         const snapshot = JSON.stringify(data);
@@ -26,18 +28,6 @@ function billStatusBadge(status) {
     if (status === 'รอตรวจสอบสลิป') return `<span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-full text-xs font-medium">รอตรวจสอบสลิป</span>`;
     if (status === 'สลิปไม่ถูกต้อง') return `<span class="bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 px-2.5 py-1 rounded-full text-xs font-medium">สลิปไม่ถูกต้อง</span>`;
     return `<span class="bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 px-2.5 py-1 rounded-full text-xs font-medium">รอชำระเงิน</span>`;
-}
-
-// คำนวณยอดเงินอัตโนมัติในฟอร์มแอดมิน
-function calcBillPreview() {
-    const rent = Number(document.getElementById('bill-rent')?.value) || 0;
-    const wUnit = Number(document.getElementById('bill-water-unit')?.value) || 0;
-    const wRate = Number(document.getElementById('bill-water-rate')?.value) || 18;
-    const eUnit = Number(document.getElementById('bill-elec-unit')?.value) || 0;
-    const eRate = Number(document.getElementById('bill-elec-rate')?.value) || 8;
-    const total = rent + (wUnit * wRate) + (eUnit * eRate);
-    const el = document.getElementById('bill-total-preview');
-    if (el) el.innerText = total.toLocaleString('th-TH', { minimumFractionDigits: 2 });
 }
 
 // ฝั่งผู้พักอาศัย
@@ -101,32 +91,42 @@ function renderAdminBills() {
     `).join('');
 }
 
+// บันทึกและส่งบิล (ตรงกับ ID ใน index.html)
 async function handleCreateBill(e) {
     e.preventDefault();
     const payload = {
         room_number: document.getElementById('bill-room').value.trim(),
         billing_month: document.getElementById('bill-month').value.trim(),
-        room_rent: document.getElementById('bill-rent').value,
-        water_units: document.getElementById('bill-water-unit').value,
-        water_rate: document.getElementById('bill-water-rate').value,
-        electric_units: document.getElementById('bill-elec-unit').value,
-        electric_rate: document.getElementById('bill-elec-rate').value
+        room_rent: Number(document.getElementById('bill-rent').value) || 0,
+        water_units: Number(document.getElementById('bill-water').value) || 0,
+        water_rate: 18,
+        electric_units: Number(document.getElementById('bill-electric').value) || 0,
+        electric_rate: 8
     };
-    const res = await fetch('/api/bills', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
-        body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-        e.target.reset();
-        calcBillPreview();
-        loadBills();
-        showAlert('ออกบิลค่าเช่าเรียบร้อยแล้ว', 'success');
-    } else {
-        showAlert('เกิดข้อผิดพลาดในการออกบิล', 'error');
+
+    try {
+        const res = await fetch('/api/bills', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            e.target.reset();
+            loadBills();
+            showAlert('ออกบิลค่าเช่าเรียบร้อยแล้ว', 'success');
+        } else {
+            const err = await res.json();
+            showAlert(err.error || 'เกิดข้อผิดพลาดในการออกบิล', 'error');
+        }
+    } catch (err) {
+        showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
     }
 }
 
+// เปิด-ปิด Modal แนบสลิป (ตรงกับ closeSlipModal() ใน index.html)
 function openUploadSlipModal(billId) {
     const b = globalBills.find(x => x.id === billId);
     if (!b) return;
@@ -134,41 +134,60 @@ function openUploadSlipModal(billId) {
     document.getElementById('slip-bill-info').innerText = `รอบบิล ${b.billing_month} — ยอดชำระ ${Number(b.total_amount).toLocaleString()} บาท`;
     document.getElementById('modal-upload-slip').classList.remove('hidden');
 }
-function closeUploadSlipModal() {
+
+function closeSlipModal() {
     document.getElementById('modal-upload-slip').classList.add('hidden');
 }
 
-async function handleCreateBill(e) {
+// ส่งรูปสลิปการโอนเงิน
+async function handleUploadSlip(e) {
     e.preventDefault();
-    const payload = {
-        room_number: document.getElementById('bill-room').value.trim(),
-        billing_month: document.getElementById('bill-month').value.trim(),
-        room_rent: document.getElementById('bill-rent').value,
-        water_units: document.getElementById('bill-water-unit').value,
-        water_rate: document.getElementById('bill-water-rate').value,
-        electric_units: document.getElementById('bill-elec-unit').value,
-        electric_rate: document.getElementById('bill-elec-rate').value
-    };
-    const res = await fetch('/api/bills', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
-        body: JSON.stringify(payload)
-    });
-    if (res.ok) {
-        e.target.reset();
-        calcBillPreview();
-        loadBills();
-        showAlert('ออกบิลค่าเช่าเรียบร้อยแล้ว', 'success');
-    } else {
-        const errText = await res.text();
-        showAlert(`ผิดพลาด (${res.status}): ${errText}`, 'error');
+    const billId = document.getElementById('slip-bill-id').value;
+    const fileInput = document.getElementById('slip-image-file');
+    const file = fileInput?.files?.[0];
+
+    if (!file) {
+        showAlert('กรุณาเลือกรูปภาพสลิปก่อนกดส่ง', 'error');
+        return;
     }
+
+    const reader = new FileReader();
+    reader.onload = async function (event) {
+        const base64Image = event.target.result;
+        try {
+            const res = await fetch(`/api/bills/${billId}/slip`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`
+                },
+                body: JSON.stringify({ slip_url: base64Image })
+            });
+
+            if (res.ok) {
+                e.target.reset();
+                closeSlipModal();
+                loadBills();
+                showAlert('ส่งสลิปเรียบร้อยแล้ว รอแอดมินตรวจสอบ', 'success');
+            } else {
+                const err = await res.json();
+                showAlert(err.error || 'เกิดข้อผิดพลาดในการส่งสลิป', 'error');
+            }
+        } catch (err) {
+            showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
+        }
+    };
+    reader.readAsDataURL(file);
 }
 
+// แอดมินอนุมัติ/ปฏิเสธสลิป
 async function verifyBill(id, status) {
     const res = await fetch(`/api/bills/${id}/verify`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentToken}`
+        },
         body: JSON.stringify({ status })
     });
     if (res.ok) {
@@ -177,6 +196,7 @@ async function verifyBill(id, status) {
     }
 }
 
+// แอดมินลบบิล
 async function deleteBill(id) {
     if (!confirm('ยืนยันการลบบิลนี้?')) return;
     const res = await fetch(`/api/bills/${id}`, {
@@ -189,9 +209,16 @@ async function deleteBill(id) {
     }
 }
 
+// เปิดดูรูปสลิปขนาดเต็ม
 function openBillSlip(id) {
     const b = globalBills.find(x => x.id === id);
     if (!b || !b.slip_url) return;
     document.getElementById('image-viewer-img').src = b.slip_url;
+    document.getElementById('modal-image-viewer').classList.remove('hidden');
+}
+
+function openImageViewerSrc(src) {
+    if (!src) return;
+    document.getElementById('image-viewer-img').src = src;
     document.getElementById('modal-image-viewer').classList.remove('hidden');
 }

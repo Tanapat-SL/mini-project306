@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบแจ้งซ่อมและจัดการข้อมูลหอพัก (DormCare)</title>
+    <title>ระบบดูเเลหอพัก888</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -20,7 +20,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <i class="fa-solid fa-building-user text-2xl text-amber-300"></i>
-                <span class="font-bold text-xl tracking-wide">DormCare System</span>
+                <span class="font-bold text-xl tracking-wide">ระบบดูเเลหอพัก888</span>
             </div>
             <div class="flex items-center space-x-3">
                 <!-- ปุ่มสลับโหมดกลางวัน / กลางคืน -->
@@ -52,7 +52,7 @@
                 <div class="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
                     <i class="fa-solid fa-key"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-slate-800 dark:text-white">เข้าสู่ระบบหอพัก</h1>
+                <h1 class="text-2xl font-bold text-slate-800 dark:text-white">เข้าสู่ระบบดูเเลหอพัก888</h1>
             </div>
             <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
@@ -81,12 +81,13 @@
             <div class="bg-gradient-to-r from-indigo-600 to-indigo-800 dark:from-indigo-900 dark:to-slate-800 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-transparent dark:border-slate-700">
                 <div>
                     <h2 class="text-2xl font-bold">สวัสดี, คุณผู้พักอาศัย 👋</h2>
-                    <p class="text-indigo-200 text-sm mt-1">ยินดีต้อนรับสู่ระบบแจ้งซ่อมและบริการหอพักแบบออนไลน์</p>
+                    <p class="text-indigo-200 text-sm mt-1">ยินดีต้อนรับสู่ระบบดูเเลหอพัก888 แบบออนไลน์</p>
                 </div>
                 <button onclick="toggleReportModal(true)" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-semibold px-5 py-2.5 rounded-xl shadow-md transition text-sm flex items-center space-x-2">
                     <i class="fa-solid fa-plus"></i><span>แจ้งเรื่องซ่อมใหม่</span>
                 </button>
             </div>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="md:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200/80 dark:border-slate-700">
                     <div class="flex items-center justify-between mb-4">
@@ -102,14 +103,16 @@
                         <div class="text-indigo-700 dark:text-indigo-400 font-semibold text-sm flex items-center space-x-2 mb-2"><i class="fa-solid fa-bolt text-amber-500"></i><span>มาตรฐานการให้บริการ (KPI)</span></div>
                         <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-2 mt-3">
                             <li class="flex items-center space-x-2"><i class="fa-solid fa-circle-check text-emerald-500"></i><span>เวลาแจ้งเรื่องเฉลี่ย &lt; 2 นาที</span></li>
-                            <li class="flex items-center space-x-2"><i class="fa-solid fa-circle-check text-emerald-500"></i><span>ติดตามสถานะได้ตลอด 24 ชม.</span></li>
+                            <li class="flex items-center space-x-2"><i class="fa-solid fa-circle-check text-emerald-500"></i><span>ติดตามสถานะและชำระบิลได้ 24 ชม.</span></li>
                         </ul>
                     </div>
                 </div>
             </div>
+
+            <!-- ตารางประวัติแจ้งซ่อม (ผู้พักอาศัย) -->
             <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 overflow-hidden">
                 <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                    <h3 class="font-bold text-lg text-slate-800 dark:text-white">ประวัติและรายการแจ้งซ่อมของคุณ</h3>
+                    <h3 class="font-bold text-lg text-slate-800 dark:text-white"><i class="fa-solid fa-screwdriver-wrench text-indigo-500 mr-2"></i>ประวัติและรายการแจ้งซ่อมของคุณ</h3>
                     <button onclick="loadReports()" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium flex items-center space-x-1"><i class="fa-solid fa-rotate"></i><span>รีเฟรชข้อมูล</span></button>
                 </div>
                 <div class="overflow-x-auto">
@@ -124,6 +127,29 @@
                             </tr>
                         </thead>
                         <tbody id="student-report-tbody" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ตารางบิลค่าเช่า-ค่าน้ำไฟ (ผู้พักอาศัย) -->
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-slate-800 dark:text-white"><i class="fa-solid fa-file-invoice-dollar text-emerald-500 mr-2"></i>บิลค่าเช่าและค่าน้ำ-ค่าไฟ</h3>
+                    <button onclick="loadBills()" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium flex items-center space-x-1"><i class="fa-solid fa-rotate"></i><span>รีเฟรชบิล</span></button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                        <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 font-medium text-xs uppercase border-b border-slate-100 dark:border-slate-700">
+                            <tr>
+                                <th class="py-3.5 px-4">รอบบิล</th>
+                                <th class="py-3.5 px-4">รายละเอียด</th>
+                                <th class="py-3.5 px-4">ยอดรวม</th>
+                                <th class="py-3.5 px-4 text-center">สลิป</th>
+                                <th class="py-3.5 px-4 text-center">สถานะ</th>
+                                <th class="py-3.5 px-4 text-center">การชำระเงิน</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-bills-tbody" class="divide-y divide-slate-100 dark:divide-slate-700"></tbody>
                     </table>
                 </div>
             </div>
@@ -142,13 +168,14 @@
                 <div class="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40 flex flex-wrap gap-2 justify-between items-center">
                     <div class="flex flex-wrap gap-2">
                         <button onclick="switchAdminTab('repairs')" id="tab-btn-repairs" class="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm transition"><i class="fa-solid fa-list-check mr-1.5"></i>รายการแจ้งซ่อม</button>
+                        <button onclick="switchAdminTab('bills')" id="tab-btn-bills" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 transition"><i class="fa-solid fa-file-invoice-dollar mr-1.5"></i>บิลค่าเช่า & ตรวจสลิป</button>
                         <button onclick="switchAdminTab('announcements')" id="tab-btn-announcements" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 transition"><i class="fa-solid fa-bullhorn mr-1.5"></i>จัดการประกาศ</button>
                         <button onclick="switchAdminTab('members')" id="tab-btn-members" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 transition"><i class="fa-solid fa-users-rectangle mr-1.5"></i>จัดการผู้พักอาศัย</button>
                         <button onclick="switchAdminTab('accounts')" id="tab-btn-accounts" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 transition"><i class="fa-solid fa-user-lock mr-1.5"></i>บัญชีเข้าสู่ระบบ</button>
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>ซิงค์ข้อมูลอัตโนมัติ</span>
-                        <button onclick="loadReports()" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium flex items-center space-x-1 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/40 rounded-lg"><i class="fa-solid fa-rotate"></i><span>อัปเดตข้อมูล</span></button>
+                        <button onclick="loadReports(); loadBills();" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 font-medium flex items-center space-x-1 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/40 rounded-lg"><i class="fa-solid fa-rotate"></i><span>อัปเดตข้อมูล</span></button>
                     </div>
                 </div>
 
@@ -231,6 +258,42 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Tab 5: Bills & Slip Verification -->
+                <div id="admin-tab-bills" class="hidden p-6 space-y-6">
+                    <div class="bg-emerald-50 dark:bg-slate-900/50 p-5 rounded-xl border border-emerald-100 dark:border-slate-700">
+                        <h4 class="font-bold text-emerald-800 dark:text-emerald-300 text-sm mb-3"><i class="fa-solid fa-calculator mr-1"></i> ออกบิลค่าเช่า-ค่าน้ำไฟประจำเดือน</h4>
+                        <form onsubmit="handleCreateBill(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                            <input type="text" id="bill-room" required placeholder="เลขห้อง (เช่น 101)" class="px-3.5 py-2 text-sm rounded-lg border dark:border-slate-600 bg-white dark:bg-slate-800 outline-none">
+                            <input type="text" id="bill-month" required placeholder="รอบเดือน (เช่น พ.ย. 2569)" class="px-3.5 py-2 text-sm rounded-lg border dark:border-slate-600 bg-white dark:bg-slate-800 outline-none">
+                            <input type="number" id="bill-rent" oninput="calcBillPreview()" required placeholder="ค่าเช่าห้อง (บาท)" class="px-3.5 py-2 text-sm rounded-lg border dark:border-slate-600 bg-white dark:bg-slate-800 outline-none">
+                            <div class="flex items-center justify-between px-3.5 py-2 rounded-lg bg-white dark:bg-slate-800 border dark:border-slate-600 text-xs">
+                                <span>ยอดรวม:</span><strong id="bill-total-preview" class="text-emerald-600 dark:text-emerald-400 text-sm">0.00</strong>
+                            </div>
+                            <input type="number" id="bill-water-unit" oninput="calcBillPreview()" required placeholder="หน่วยน้ำที่ใช้" class="px-3.5 py-2 text-sm rounded-lg border dark:border-slate-600 bg-white dark:bg-slate-800 outline-none">
+                            <input type="number" id="bill-water-rate" oninput="calcBillPreview()" value="18" placeholder="ค่าน้ำ/หน่วย (บาท)" class="px-3.5 py-2 text-sm rounded-lg border dark:border-slate-600 bg-white dark:bg-slate-800 outline-none">
+                            <input type="number" id="bill-elec-unit" oninput="calcBillPreview()" required placeholder="หน่วยไฟที่ใช้" class="px-3.5 py-2 text-sm rounded-lg border dark:border-slate-600 bg-white dark:bg-slate-800 outline-none">
+                            <input type="number" id="bill-elec-rate" oninput="calcBillPreview()" value="8" placeholder="ค่าไฟ/หน่วย (บาท)" class="px-3.5 py-2 text-sm rounded-lg border dark:border-slate-600 bg-white dark:bg-slate-800 outline-none">
+                            <button type="submit" class="sm:col-span-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm">บันทึกและส่งบิลให้ผู้พักอาศัย</button>
+                        </form>
+                    </div>
+                    <div class="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-xl">
+                        <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                            <thead class="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 font-medium text-xs uppercase border-b border-slate-200 dark:border-slate-700">
+                                <tr>
+                                    <th class="py-3 px-4">ห้อง</th>
+                                    <th class="py-3 px-4">รอบบิล</th>
+                                    <th class="py-3 px-4">รายละเอียด</th>
+                                    <th class="py-3 px-4">ยอดรวม</th>
+                                    <th class="py-3 px-4 text-center">สลิปโอนเงิน</th>
+                                    <th class="py-3 px-4 text-center">สถานะ</th>
+                                    <th class="py-3 px-4 text-center">ตรวจสอบ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-bills-tbody" class="divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
@@ -254,6 +317,31 @@
         </div>
     </div>
 
+    <!-- Modal Upload Slip -->
+    <div id="modal-upload-slip" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border dark:border-slate-700">
+            <div class="bg-emerald-600 px-6 py-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-receipt mr-2"></i>แจ้งโอนเงิน / แนบสลิป</h3>
+                <button onclick="closeUploadSlipModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="handleUploadSlip(event)" class="p-6 space-y-4">
+                <input type="hidden" id="slip-bill-id">
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border dark:border-slate-700 text-xs space-y-1">
+                    <p id="slip-bill-info" class="font-bold text-sm text-indigo-600 dark:text-indigo-400"></p>
+                    <p class="text-slate-600 dark:text-slate-300">บัญชีพร้อมเพย์หอพัก888: <strong>089-888-8888 (นิติบุคคลหอพัก888)</strong></p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">แนบรูปภาพสลิปการโอนเงิน *</label>
+                    <input type="file" id="slip-image-file" accept="image/*" required class="w-full text-xs">
+                </div>
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeUploadSlipModal()" class="px-4 py-2 text-xs font-semibold bg-slate-200 dark:bg-slate-700 rounded">ยกเลิก</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-semibold bg-emerald-600 text-white rounded">ยืนยันส่งสลิป</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal View Detail -->
     <div id="modal-report-detail" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border dark:border-slate-700">
@@ -271,7 +359,7 @@
         </div>
     </div>
 
-    <!-- Modal Image Viewer (แก้ปัญหาคลิกรูปแล้วหน้าขาว) -->
+    <!-- Modal Image Viewer -->
     <div id="modal-image-viewer" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[60] flex flex-col items-center justify-center p-4" onclick="closeImageViewer()">
         <button class="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl flex items-center justify-center transition" onclick="closeImageViewer()">
             <i class="fa-solid fa-xmark"></i>
@@ -286,6 +374,7 @@
     <script src="js/announcements.js"></script>
     <script src="js/members.js"></script>
     <script src="js/accounts.js"></script>
+    <script src="js/bills.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

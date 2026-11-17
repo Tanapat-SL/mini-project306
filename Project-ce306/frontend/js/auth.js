@@ -5,8 +5,12 @@ let currentToken = localStorage.getItem('token') || null;
 let realtimeInterval = null;
 
 function checkInitialAuth() {
-    if (currentToken) { currentUser = { username: localStorage.getItem('username'), role: localStorage.getItem('user_role') }; renderAuth(); }
-    else renderLoginState();
+    if (currentToken) {
+        currentUser = { username: localStorage.getItem('username'), role: localStorage.getItem('user_role') };
+        renderAuth();
+    } else {
+        renderLoginState();
+    }
 }
 
 async function handleLogin(e) {
@@ -14,14 +18,26 @@ async function handleLogin(e) {
     const u = document.getElementById('username').value.trim();
     const p = document.getElementById('password').value.trim();
     try {
-        const r = await fetch('/api/login', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username:u, password:p}) });
+        const r = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: u, password: p })
+        });
         const d = await r.json();
         if (r.ok) {
-            currentToken = d.token; currentUser = {username:u, role:d.role};
-            localStorage.setItem('token', d.token); localStorage.setItem('user_role', d.role); localStorage.setItem('username', u);
-            showAlert(`ยินดีต้อนรับ ${u}`, 'success'); renderAuth();
-        } else showAlert(d.message || 'รหัสผ่านผิด', 'error');
-    } catch { showAlert('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+            currentToken = d.token;
+            currentUser = { username: u, role: d.role };
+            localStorage.setItem('token', d.token);
+            localStorage.setItem('user_role', d.role);
+            localStorage.setItem('username', u);
+            showAlert(`ยินดีต้อนรับ ${u}`, 'success');
+            renderAuth();
+        } else {
+            showAlert(d.message || 'รหัสผ่านผิด', 'error');
+        }
+    } catch {
+        showAlert('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error');
+    }
 }
 
 function logout() {
@@ -29,7 +45,8 @@ function logout() {
     const savedTheme = localStorage.getItem('theme');
     localStorage.clear();
     if (savedTheme) localStorage.setItem('theme', savedTheme);
-    currentToken=null; currentUser=null;
+    currentToken = null;
+    currentUser = null;
     renderLoginState();
 }
 
@@ -39,6 +56,7 @@ function startRealtimeSync() {
         if (!currentToken || document.hidden) return;
         loadReports(true);
         loadAnnouncements(true);
+        loadBills(true);
     }, 5000); // ตรวจสอบข้อมูลใหม่ทุก 5 วินาที
 }
 
@@ -69,5 +87,6 @@ function renderAuth() {
     }
     loadReports();
     loadAnnouncements();
+    loadBills();
     startRealtimeSync();
 }

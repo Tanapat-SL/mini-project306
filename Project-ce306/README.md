@@ -33,3 +33,7 @@ dorm-system/
 
 ตั้งค่าผ่าน environment variable ได้: `PORT`, `JWT_SECRET`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
 (ถ้าไม่ตั้ง จะใช้ค่าเดิมเหมือนในโค้ดก่อนจัดระเบียบ)
+
+1	"admin" 	"1234"	"admin"
+2	"student1"	"1234"	"user"
+3	"100"	    "1234"	"user"

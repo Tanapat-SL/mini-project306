@@ -53,6 +53,16 @@ function viewReportDetail(id) {
     document.getElementById('modal-report-detail').classList.remove('hidden');
 }
 function closeReportDetail() { document.getElementById('modal-report-detail').classList.add('hidden'); }
+function openReportImage(id) {
+    const r = globalReports.find(x => x.id === id);
+    if (!r || !r.image_url) return;
+    document.getElementById('image-viewer-img').src = r.image_url;
+    document.getElementById('modal-image-viewer').classList.remove('hidden');
+}
+function closeImageViewer() {
+    document.getElementById('modal-image-viewer').classList.add('hidden');
+    document.getElementById('image-viewer-img').src = '';
+}
 function toggleReportModal(show) { document.getElementById('modal-report').classList.toggle('hidden', !show); }
 
 async function handleCreateReport(e) {

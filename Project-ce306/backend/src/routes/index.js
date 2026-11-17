@@ -1,9 +1,9 @@
 const router = require('express').Router();
 
-router.use('/', require('./auth'));            // /api/login
-router.use('/reports', require('./reports'));  // /api/reports
-router.use('/members', require('./members'));  // /api/members
-router.use('/users', require('./users'));      // /api/users
+router.use('/login', require('./auth')); // หรือชื่อไฟล์ login เดิมของคุณ
+router.use('/reports', require('./reports'));
+router.use('/members', require('./members'));
+router.use('/users', require('./users'));
 router.use('/announcements', require('./announcements'));
 router.use('/bills', require('./bills'));
 

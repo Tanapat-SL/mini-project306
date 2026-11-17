@@ -138,23 +138,30 @@ function closeUploadSlipModal() {
     document.getElementById('modal-upload-slip').classList.add('hidden');
 }
 
-async function handleUploadSlip(e) {
+async function handleCreateBill(e) {
     e.preventDefault();
-    const billId = document.getElementById('slip-bill-id').value;
-    const file = document.getElementById('slip-image-file').files[0];
-    if (!file) return showAlert('กรุณาเลือกรูปสลิปโอนเงิน', 'error');
-
-    const slip_url = await readFileAsBase64(file);
-    const res = await fetch(`/api/bills/${billId}/slip`, {
-        method: 'PUT',
+    const payload = {
+        room_number: document.getElementById('bill-room').value.trim(),
+        billing_month: document.getElementById('bill-month').value.trim(),
+        room_rent: document.getElementById('bill-rent').value,
+        water_units: document.getElementById('bill-water-unit').value,
+        water_rate: document.getElementById('bill-water-rate').value,
+        electric_units: document.getElementById('bill-elec-unit').value,
+        electric_rate: document.getElementById('bill-elec-rate').value
+    };
+    const res = await fetch('/api/bills', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
-        body: JSON.stringify({ slip_url })
+        body: JSON.stringify(payload)
     });
     if (res.ok) {
-        closeUploadSlipModal();
         e.target.reset();
+        calcBillPreview();
         loadBills();
-        showAlert('อัปโหลดสลิปเรียบร้อย รอแอดมินตรวจสอบ', 'success');
+        showAlert('ออกบิลค่าเช่าเรียบร้อยแล้ว', 'success');
+    } else {
+        const errText = await res.text();
+        showAlert(`ผิดพลาด (${res.status}): ${errText}`, 'error');
     }
 }
 

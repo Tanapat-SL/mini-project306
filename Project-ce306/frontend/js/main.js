@@ -21,3 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     checkInitialAuth();
 });
+setInterval(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return; // ถ้ายังไม่ล็อกอินไม่ต้องดึงข้อมูล
+
+    if (typeof loadBills === 'function') loadBills();
+    if (typeof loadAnnouncements === 'function') loadAnnouncements();
+    if (typeof loadReports === 'function') loadReports();
+}, 5000);

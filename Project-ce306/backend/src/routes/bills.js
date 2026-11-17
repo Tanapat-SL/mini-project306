@@ -22,14 +22,15 @@ const ensureTable = async () => {
 };
 
 // GET /api/bills (แอดมินเห็นทุกห้อง / ผู้พักอาศัยเห็นเฉพาะห้องตัวเองตาม username)
+// GET /api/bills (แอดมินเห็นทุกห้อง / ผู้พักอาศัยเห็นเฉพาะห้องตัวเองตาม username)
 router.get('/', authenticateJWT, async (req, res) => {
     try {
         await ensureTable();
         let sql = 'SELECT * FROM bills';
         let values = [];
         if (req.user.role !== 'admin') {
-            sql += ' WHERE room_number = $1';
-            values = [req.user.username];
+            sql += ' WHERE room_number = (SELECT username FROM users WHERE id = $1)';
+            values = [req.user.id];
         }
         sql += ' ORDER BY id DESC';
         const result = await pool.query(sql, values);

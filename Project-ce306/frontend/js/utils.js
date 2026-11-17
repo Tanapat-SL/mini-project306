@@ -52,3 +52,9 @@ function badge(s) {
     return `<span class="bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 px-2.5 py-1 rounded-full text-xs font-medium">เสร็จสิ้น</span>`;
 }
 function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function openImageViewerSrc(src) {
+    if (!src) return;
+    document.getElementById('image-viewer-img').src = src;
+    document.getElementById('modal-image-viewer').classList.remove('hidden');
+}

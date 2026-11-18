@@ -54,7 +54,10 @@ function renderAnnouncementsAdmin() {
                 <div class="font-bold text-sm text-slate-800 dark:text-slate-100">${escapeHtml(a.title)} <span class="text-[11px] font-normal text-slate-400 ml-2">${escapeHtml(a.date || '')}</span></div>
                 <div class="text-xs text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-line">${escapeHtml(a.content)}</div>
             </div>
-            <button onclick="deleteAnnouncement(${a.id})" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 px-2.5 py-1.5 rounded-lg text-xs transition"><i class="fa-solid fa-trash"></i></button>
+            <button onclick="deleteAnnouncement(${a.id})" title="ลบประกาศ" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition shrink-0">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>ลบ</span>
+            </button>
         </div>
     `).join('');
 }
@@ -77,14 +80,6 @@ async function handleCreateAnnouncement(e) {
     }
 }
 
-async function deleteAnnouncement(id) {
-    if (!confirm('ยืนยันการลบประกาศนี้?')) return;
-    const res = await fetch(`/api/announcements/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${currentToken}` }
-    });
-    if (res.ok) {
-        await loadAnnouncements();
-        showAlert('ลบประกาศแล้ว', 'success');
-    }
+function deleteAnnouncement(id) {
+    confirmDeleteItem('announcements', id);
 }

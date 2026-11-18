@@ -17,18 +17,6 @@ function switchAdminTab(tName) {
     if (tName === 'accounts') loadAccounts();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    initTheme();
-    checkInitialAuth();
-});
-setInterval(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return; // ถ้ายังไม่ล็อกอินไม่ต้องดึงข้อมูล
-
-    if (typeof loadBills === 'function') loadBills();
-    if (typeof loadAnnouncements === 'function') loadAnnouncements();
-    if (typeof loadReports === 'function') loadReports();
-}, 5000);
 let pendingDeleteAction = null;
 
 function openDeleteModal({ title, desc, onConfirm }) {
@@ -44,6 +32,9 @@ function closeDeleteModal() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    checkInitialAuth();
+
     const confirmBtn = document.getElementById('btn-confirm-delete');
     if (confirmBtn) {
         confirmBtn.addEventListener('click', async () => {
@@ -82,11 +73,17 @@ function confirmDeleteItem(type, id) {
             endpoint: `/api/announcements/${id}`,
             reload: () => typeof loadAnnouncements === 'function' && loadAnnouncements()
         },
-        users: {
-            title: 'ลบบัญชีผู้ใช้งาน',
-            desc: 'บัญชีผู้พักอาศัยรายนี้จะไม่สามารถเข้าสู่ระบบได้อีก',
-            endpoint: `/api/users/${id}`,
-            reload: () => typeof loadUsers === 'function' && loadUsers()
+        members: {
+            title: 'ลบข้อมูลผู้พักอาศัย',
+            desc: 'ข้อมูลผู้พักอาศัยและห้องพักรายการนี้จะถูกลบออกจากระบบ',
+            endpoint: `/api/members/${id}`,
+            reload: () => typeof loadMembers === 'function' && loadMembers()
+        },
+        accounts: {
+            title: 'ลบบัญชีเข้าสู่ระบบ',
+            desc: 'บัญชีผู้ใช้งานนี้จะไม่สามารถล็อกอินเข้าสู่ระบบได้อีก',
+            endpoint: `/api/accounts/${id}`,
+            reload: () => typeof loadAccounts === 'function' && loadAccounts()
         }
     };
 
@@ -107,7 +104,7 @@ function confirmDeleteItem(type, id) {
                     target.reload();
                     showAlert('ลบรายการเรียบร้อยแล้ว', 'success');
                 } else {
-                    showAlert(data.error || 'ไม่สามารถลบรายการได้', 'error');
+                    showAlert(data.error || data.message || 'ไม่สามารถลบรายการได้', 'error');
                 }
             } catch (err) {
                 showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');

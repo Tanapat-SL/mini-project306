@@ -10,7 +10,7 @@ async function loadReports(isSilent = false) {
         if(r.status===401||r.status===403) return logout();
         const data = await r.json();
         const snapshot = JSON.stringify(data);
-        if (isSilent && snapshot === lastReportsSnapshot) return; // ข้ามการวาดใหม่ถ้าข้อมูลไม่เปลี่ยน
+        if (isSilent && snapshot === lastReportsSnapshot) return;
         lastReportsSnapshot = snapshot;
         globalReports = data;
 
@@ -48,6 +48,9 @@ function renderAdminTable(r) {
                 <button onclick="viewReportDetail(${i.id})" class="text-xs bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 px-2.5 py-1 rounded hover:bg-indigo-100">ดูข้อมูล</button>
                 <button onclick="updateReportStatus(${i.id}, 'กำลังแก้ไข')" class="text-xs bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 px-2.5 py-1 rounded hover:bg-blue-100">กำลังแก้ไข</button>
                 <button onclick="updateReportStatus(${i.id}, 'เสร็จสิ้น')" class="text-xs bg-emerald-50 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 px-2.5 py-1 rounded hover:bg-emerald-100">เสร็จสิ้น</button>
+                <button onclick="deleteReport(${i.id})" title="ลบรายการ" class="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
             </td>
         </tr>`).join('');
 }
@@ -63,6 +66,10 @@ async function updateReportStatus(id, s) {
     await fetch(`/api/reports/${id}`, {method:'PUT', headers:{'Content-Type':'application/json','Authorization':`Bearer ${currentToken}`}, body:JSON.stringify({status:s})});
     loadReports();
     showAlert(`อัปเดตสถานะ #${id} เป็น "${s}" แล้ว`, 'success');
+}
+
+function deleteReport(id) {
+    confirmDeleteItem('reports', id);
 }
 
 function viewReportDetail(id) {

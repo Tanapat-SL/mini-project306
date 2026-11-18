@@ -85,13 +85,15 @@ function renderAdminBills() {
             <td class="p-3 text-center space-x-1">
                 ${b.slip_url ? `<button onclick="verifyBill(${b.id}, 'ชำระแล้ว')" class="text-xs bg-emerald-50 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 px-2 py-1 rounded hover:bg-emerald-100">อนุมัติ</button>` : ''}
                 ${b.slip_url ? `<button onclick="verifyBill(${b.id}, 'สลิปไม่ถูกต้อง')" class="text-xs bg-amber-50 dark:bg-amber-900/50 text-amber-600 dark:text-amber-300 px-2 py-1 rounded hover:bg-amber-100">ปฏิเสธ</button>` : ''}
-                <button onclick="deleteBill(${b.id})" class="text-xs bg-rose-50 dark:bg-rose-900/50 text-rose-600 dark:text-rose-300 px-2 py-1 rounded hover:bg-rose-100"><i class="fa-solid fa-trash"></i></button>
+                <button onclick="deleteBill(${b.id})" title="ลบบิล" class="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
             </td>
         </tr>
     `).join('');
 }
 
-// บันทึกและส่งบิล (ตรงกับ ID ใน index.html)
+// บันทึกและส่งบิล
 async function handleCreateBill(e) {
     e.preventDefault();
     const payload = {
@@ -126,7 +128,7 @@ async function handleCreateBill(e) {
     }
 }
 
-// เปิด-ปิด Modal แนบสลิป (ตรงกับ closeSlipModal() ใน index.html)
+// เปิด-ปิด Modal แนบสลิป
 function openUploadSlipModal(billId) {
     const b = globalBills.find(x => x.id === billId);
     if (!b) return;
@@ -196,17 +198,9 @@ async function verifyBill(id, status) {
     }
 }
 
-// แอดมินลบบิล
-async function deleteBill(id) {
-    if (!confirm('ยืนยันการลบบิลนี้?')) return;
-    const res = await fetch(`/api/bills/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${currentToken}` }
-    });
-    if (res.ok) {
-        loadBills();
-        showAlert('ลบบิลแล้ว', 'success');
-    }
+// แอดมินลบบิล (เรียกใช้ Modal ยืนยันการลบ)
+function deleteBill(id) {
+    confirmDeleteItem('bills', id);
 }
 
 // เปิดดูรูปสลิปขนาดเต็ม

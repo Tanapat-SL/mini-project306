@@ -7,8 +7,8 @@ function switchAdminTab(tName) {
         if (tabEl) tabEl.classList.toggle('hidden', t !== tName);
         if (btnEl) {
             btnEl.className = t === tName
-                ? 'px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm transition'
-                : 'px-4 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 transition';
+                ? 'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold bg-indigo-600 text-white shadow-md shadow-indigo-600/20 transition text-left'
+                : 'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800/80 transition text-left';
         }
     });
     if (tName === 'bills') loadBills();
@@ -81,8 +81,8 @@ function confirmDeleteItem(type, id) {
         },
         accounts: {
             title: 'ลบบัญชีเข้าสู่ระบบ',
-            desc: 'บัญชีผู้ใช้งานนี้จะไม่สามารถล็อกอินเข้าสู่ระบบได้อีก',
-            endpoint: `/api/accounts/${id}`,
+            desc: 'บัญชีผู้ใช้งานนี้จะไม่สามารถล็อกอินเข้าสู่ระบบได้อีก (หากเคยแจ้งซ่อมค้างไว้จะลบไม่ได้)',
+            endpoint: `/api/users/${id}`,
             reload: () => typeof loadAccounts === 'function' && loadAccounts()
         }
     };

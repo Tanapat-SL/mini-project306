@@ -7,7 +7,12 @@ async function loadReports(isSilent = false) {
     if (!currentToken) return;
     try {
         const r = await fetch('/api/reports', {headers:{'Authorization':`Bearer ${currentToken}`}});
-        if(r.status===401||r.status===403) return logout();
+        if (r.status === 401 || r.status === 403) {
+            const errData = await r.json().catch(() => ({}));
+            logout();
+            showAlert(errData.error || 'ไม่พบบัญชีผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่', 'error');
+            return;
+        }
         const data = await r.json();
         const snapshot = JSON.stringify(data);
         if (isSilent && snapshot === lastReportsSnapshot) return;

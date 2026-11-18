@@ -216,3 +216,31 @@ function openImageViewerSrc(src) {
     document.getElementById('image-viewer-img').src = src;
     document.getElementById('modal-image-viewer').classList.remove('hidden');
 }
+// บันทึกรูปภาพ QR Code ลงเครื่องผู้เช่า
+async function downloadQRCode() {
+    const modal = document.getElementById('modal-upload-slip');
+    const qrImg = document.getElementById('payment-qr-img') || modal?.querySelector('img');
+    if (!qrImg || !qrImg.src) {
+        showAlert('ไม่พบรูปภาพ QR Code', 'error');
+        return;
+    }
+
+    const billInfo = document.getElementById('slip-bill-info')?.innerText || 'ชำระค่าเช่า';
+    const fileName = `QR-${billInfo.split('—')[0].trim().replace(/\s+/g, '_')}.png`;
+
+    try {
+        const res = await fetch(qrImg.src);
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(blobUrl);
+        showAlert('บันทึก QR Code เรียบร้อยแล้ว', 'success');
+    } catch (err) {
+        window.open(qrImg.src, '_blank');
+    }
+}

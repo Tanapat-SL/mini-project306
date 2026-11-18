@@ -34,20 +34,43 @@ router.post('/', async (req, res) => {
 });
 
 // DELETE /api/users/:id
-router.delete('/:id', async (req, res) => {
+// DELETE /api/users/:id (ลบผู้ใช้ โดยบังคับให้เหลือ admin อย่างน้อย 1 บัญชี)
+router.delete('/:id', authenticateJWT, async (req, res) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถลบบัญชีได้' });
+    }
+
     try {
-        if (req.params.id == req.user.id) {
-            return res.status(400).json({ message: 'ไม่สามารถลบบัญชีของตัวเองได้' });
+        // 1. ตรวจสอบว่าบัญชีที่จะลบมีอยู่จริงหรือไม่ และมีสิทธิ์เป็นอะไร
+        const targetResult = await pool.query('SELECT id, role FROM users WHERE id = $1', [req.params.id]);
+        if (targetResult.rows.length === 0) {
+            return res.status(404).json({ error: 'ไม่พบบัญชีผู้ใช้งาน' });
         }
+
+        // 2. หากบัญชีที่จะลบเป็น admin ให้เช็กว่าเหลือ admin กี่คนในระบบ
+        if (targetResult.rows[0].role === 'admin') {
+            const adminCountResult = await pool.query("SELECT COUNT(*) FROM users WHERE role = 'admin'");
+            const adminCount = Number(adminCountResult.rows[0].count);
+
+            if (adminCount <= 1) {
+                return res.status(400).json({
+                    error: 'ไม่สามารถลบได้ ต้องเหลือบัญชี Admin อย่างน้อย 1 บัญชีในระบบ',
+                    message: 'ไม่สามารถลบได้ ต้องเหลือบัญชี Admin อย่างน้อย 1 บัญชีในระบบ'
+                });
+            }
+        }
+
+        // 3. ดำเนินการลบ
         await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
-        res.json({ message: 'Account deleted successfully' });
+        res.json({ message: 'ลบบัญชีผู้ใช้งานสำเร็จ' });
     } catch (err) {
-        // ลบไม่ได้เพราะผู้ใช้นี้เคยแจ้งซ่อม (ติด Foreign Key)
         if (err.code === '23503') {
-            res.status(400).json({ message: 'ไม่สามารถลบได้ เนื่องจากบัญชีนี้มีประวัติการแจ้งซ่อมในระบบ' });
-        } else {
-            res.status(500).json({ error: err.message });
+            return res.status(400).json({
+                error: 'ไม่สามารถลบได้ เนื่องจากบัญชีนี้ยังมีประวัติการแจ้งซ่อมค้างอยู่ในระบบ',
+                message: 'ไม่สามารถลบได้ เนื่องจากบัญชีนี้ยังมีประวัติการแจ้งซ่อมค้างอยู่ในระบบ'
+            });
         }
+        res.status(500).json({ error: err.message });
     }
 });
 

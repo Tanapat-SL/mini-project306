@@ -5,6 +5,12 @@ const { authenticateJWT } = require('../middleware/auth');
 // GET /api/reports
 router.get('/', authenticateJWT, async (req, res) => {
     try {
+        // ตรวจสอบว่าบัญชียังมีอยู่ในระบบหรือไม่
+        const userCheck = await pool.query('SELECT id FROM users WHERE id = $1', [req.user.id]);
+        if (userCheck.rows.length === 0) {
+            return res.status(401).json({ error: 'ไม่พบบัญชีผู้ใช้งาน' });
+        }
+
         let sql = 'SELECT r.*, u.username FROM repair_reports r JOIN users u ON r.user_id = u.id';
         let values = [];
         if (req.user.role === 'user') {
@@ -39,6 +45,22 @@ router.put('/:id', authenticateJWT, async (req, res) => {
     try {
         await pool.query('UPDATE repair_reports SET status = $1 WHERE id = $2', [status, req.params.id]);
         res.json({ message: 'Updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE /api/reports/:id (เฉพาะแอดมิน)
+router.delete('/:id', authenticateJWT, async (req, res) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'เฉพาะผู้ดูแลระบบเท่านั้นที่สามารถลบรายการได้' });
+    }
+    try {
+        const result = await pool.query('DELETE FROM repair_reports WHERE id = $1 RETURNING id', [req.params.id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'ไม่พบรายการแจ้งซ่อมที่ต้องการลบ' });
+        }
+        res.json({ message: 'ลบรายการแจ้งซ่อมสำเร็จ' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

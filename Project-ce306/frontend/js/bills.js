@@ -211,11 +211,6 @@ function openBillSlip(id) {
     document.getElementById('modal-image-viewer').classList.remove('hidden');
 }
 
-function openImageViewerSrc(src) {
-    if (!src) return;
-    document.getElementById('image-viewer-img').src = src;
-    document.getElementById('modal-image-viewer').classList.remove('hidden');
-}
 // บันทึกรูปภาพ QR Code ลงเครื่องผู้เช่า
 async function downloadQRCode() {
     const modal = document.getElementById('modal-upload-slip');

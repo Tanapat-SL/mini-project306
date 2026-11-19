@@ -2,7 +2,7 @@
 -- DormCare : Database schema (PostgreSQL)
 -- สร้างฐานข้อมูลก่อน:  CREATE DATABASE dorm_system;
 -- รันไฟล์นี้:  psql -U postgres -d dorm_system -f database/schema.sql
--- หมายเหตุ: สร้างจากโค้ดที่ใช้งานอยู่ ถ้าตารางเดิมของคุณต่างจากนี้ ให้ปรับตามจริง
+-- หมายเหตุ: สร้างจากโค้ดที่ใช้งานอยู่ (users, repair_reports, room_members, announcements, bills)
 -- =====================================================
 
 -- บัญชีผู้ใช้งาน (admin / user)
@@ -35,3 +35,29 @@ CREATE TABLE IF NOT EXISTS room_members (
 );
 
 CREATE INDEX IF NOT EXISTS idx_reports_user ON repair_reports(user_id);
+
+-- ประกาศจากผู้ดูแล (ตรงกับ ensureTable ใน backend/src/routes/announcements.js)
+CREATE TABLE IF NOT EXISTS announcements (
+    id         SERIAL PRIMARY KEY,
+    title      VARCHAR(255) NOT NULL,
+    content    TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- บิลค่าเช่า/น้ำ/ไฟ (ตรงกับ ensureTable ใน backend/src/routes/bills.js)
+-- room_number ใช้จับคู่กับ users.username ของผู้พักอาศัย
+CREATE TABLE IF NOT EXISTS bills (
+    id             SERIAL PRIMARY KEY,
+    room_number    VARCHAR(50) NOT NULL,
+    billing_month  VARCHAR(50) NOT NULL,
+    room_rent      NUMERIC(10,2) DEFAULT 0,
+    water_units    NUMERIC(10,2) DEFAULT 0,
+    water_rate     NUMERIC(10,2) DEFAULT 18,
+    electric_units NUMERIC(10,2) DEFAULT 0,
+    electric_rate  NUMERIC(10,2) DEFAULT 8,
+    total_amount   NUMERIC(10,2) NOT NULL,
+    slip_url       TEXT,                    -- base64 data URL ของสลิปโอนเงิน
+    status         VARCHAR(50) NOT NULL DEFAULT 'รอชำระเงิน',
+                   -- ค่าที่ใช้: รอชำระเงิน / รอตรวจสอบสลิป / ชำระแล้ว / สลิปไม่ถูกต้อง
+    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

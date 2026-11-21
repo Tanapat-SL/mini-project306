@@ -1,16 +1,15 @@
 // ============================================================================
 // ระบบเชื่อมข้อมูลผู้พักอาศัย (Members) และตัวกรองแยกตามห้อง (All, 100, 303, ...)
-// รองรับทั้งหน้า "รายการแจ้งซ่อม" และ "จัดการบิลค่าเช่า"
 // ============================================================================
 
 const RoomFilterState = {
-    membersMap: {},       // { "100": { room: "100", name: "ชื่อผู้เช่า", phone: "08x..." } }
+    membersMap: {},
+    membersLoaded: false,
     selectedRepairRoom: 'ALL',
     selectedBillRoom: 'ALL',
     isApplying: false
 };
 
-// ล้างคำนำหน้าให้เหลือเฉพาะเลขห้อง เช่น "ห้อง 100" -> "100"
 function normalizeRoomNumber(raw) {
     if (!raw) return '';
     return String(raw)
@@ -18,7 +17,6 @@ function normalizeRoomNumber(raw) {
         .trim();
 }
 
-// เรียงเลขห้องจากน้อยไปมาก (เช่น 100, 101, 303)
 function sortRoomsNaturally(rooms) {
     return Array.from(rooms).sort((a, b) =>
         a.localeCompare(b, 'th', { numeric: true, sensitivity: 'base' })
@@ -35,7 +33,6 @@ function syncMembersFromDOM() {
 
     rows.forEach((row) => {
         const cells = row.querySelectorAll('td');
-        // ข้ามแถวแจ้งเตือนว่าง (colspan)
         if (cells.length < 4) return;
 
         const room = normalizeRoomNumber(cells[1].textContent);
@@ -48,10 +45,19 @@ function syncMembersFromDOM() {
     });
 
     RoomFilterState.membersMap = map;
+    if (rows.length > 0) {
+        RoomFilterState.membersLoaded = true;
+    }
+
     updateCreateBillRoomSelector();
+
+    // อัปเดตชื่อผู้เช่าใต้ช่องกรอกเลขห้องทันทีถ้ามีเลขห้องพิมพ์ค้างอยู่
+    const billRoomInput = document.getElementById('bill-room');
+    if (billRoomInput && billRoomInput.value.trim()) {
+        onInputBillRoom(billRoomInput.value);
+    }
 }
 
-// อัปเดตตัวเลือกห้องในฟอร์ม "ออกบิลค่าเช่า" ให้อิงจากผู้พักอาศัย
 function updateCreateBillRoomSelector() {
     const selectEl = document.getElementById('bill-room-select');
     const datalistEl = document.getElementById('member-rooms-datalist');
@@ -68,7 +74,7 @@ function updateCreateBillRoomSelector() {
 
     if (selectEl) {
         const currentVal = selectEl.value;
-        let optionsHtml = `<option value="">-- เลือกห้องผู้เช่า --</option>`;
+        let optionsHtml = `<option value="">-- เลือกห้องผู้เช่าด่วน --</option>`;
         rooms.forEach((r) => {
             const m = RoomFilterState.membersMap[r];
             optionsHtml += `<option value="${r}">ห้อง ${r} (${m.name})</option>`;
@@ -80,22 +86,14 @@ function updateCreateBillRoomSelector() {
     }
 }
 
-// เมื่อเลือกห้องจาก Dropdown ในฟอร์มออกบิล -> ใส่ค่าลงช่อง #bill-room อัตโนมัติ
 function onSelectBillRoomDropdown(roomValue) {
     const inputEl = document.getElementById('bill-room');
-    const hintEl = document.getElementById('bill-tenant-hint');
-    if (inputEl && roomValue) {
+    if (inputEl) {
         inputEl.value = roomValue;
     }
-    if (hintEl) {
-        const member = RoomFilterState.membersMap[normalizeRoomNumber(roomValue)];
-        hintEl.textContent = member
-            ? `ผู้เช่า: ${member.name} (${member.phone})`
-            : '';
-    }
+    onInputBillRoom(roomValue);
 }
 
-// เมื่อพิมพ์เลขห้องเองในฟอร์มออกบิล -> แสดงชื่อผู้เช่ากำกับอัตโนมัติ
 function onInputBillRoom(rawValue) {
     const cleanRoom = normalizeRoomNumber(rawValue);
     const selectEl = document.getElementById('bill-room-select');
@@ -104,13 +102,20 @@ function onInputBillRoom(rawValue) {
     if (selectEl) {
         selectEl.value = RoomFilterState.membersMap[cleanRoom] ? cleanRoom : '';
     }
-    if (hintEl) {
-        const member = RoomFilterState.membersMap[cleanRoom];
-        hintEl.textContent = member
-            ? `ผู้เช่า: ${member.name} (${member.phone})`
-            : cleanRoom
-            ? 'ยังไม่มีข้อมูลผู้เช่าในระบบจัดการผู้พักอาศัย'
-            : '';
+    if (!hintEl) return;
+
+    if (!cleanRoom) {
+        hintEl.innerHTML = '';
+        return;
+    }
+
+    const member = RoomFilterState.membersMap[cleanRoom];
+    if (member) {
+        hintEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> ผู้เช่าห้อง ${cleanRoom}: <strong>${member.name}</strong> (${member.phone})</span>`;
+    } else if (RoomFilterState.membersLoaded) {
+        hintEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> ยังไม่มีข้อมูลผู้เช่าห้อง ${cleanRoom} ในระบบจัดการผู้พักอาศัย</span>`;
+    } else {
+        hintEl.innerHTML = '';
     }
 }
 
@@ -119,7 +124,6 @@ function renderRoomFilterBar(containerId, countsByRoom, totalCount, selectedRoom
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // รวมเลขห้องจาก "จัดการผู้พักอาศัย" เป็นหลัก + ห้องที่มีรายการอยู่แล้ว
     const allRoomKeys = new Set([
         ...Object.keys(RoomFilterState.membersMap),
         ...Object.keys(countsByRoom)
@@ -160,7 +164,9 @@ function renderRoomFilterBar(containerId, countsByRoom, totalCount, selectedRoom
                 <span>${room}</span>
                 ${
                     member
-                        ? `<span class="font-normal text-[11px] ${ isActive ? 'text-indigo-100' : 'text-slate-400 dark:text-slate-400' }">(${member.name})</span>`
+                        ? `<span class="font-normal text-[11px] ${
+                              isActive ? 'text-indigo-100' : 'text-slate-400 dark:text-slate-400'
+                          }">(${member.name})</span>`
                         : ''
                 }
                 <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
@@ -175,7 +181,7 @@ function renderRoomFilterBar(containerId, countsByRoom, totalCount, selectedRoom
     container.innerHTML = html;
 }
 
-// 3. ประมวลผลตาราง "จัดการบิลค่าเช่า" (เติมชื่อผู้เช่า + กรองตามห้อง)
+// 3. ประมวลผลตาราง "จัดการบิลค่าเช่า"
 function applyBillsRoomFilter() {
     if (RoomFilterState.isApplying) return;
     RoomFilterState.isApplying = true;
@@ -184,7 +190,6 @@ function applyBillsRoomFilter() {
         const tbody = document.getElementById('admin-bills-tbody');
         if (!tbody) return;
 
-        // ลบแถวแจ้งเตือนว่างชั่วคราวก่อนคำนวณ
         const oldEmptyRow = tbody.querySelector('.room-filter-empty-row');
         if (oldEmptyRow) oldEmptyRow.remove();
 
@@ -197,7 +202,6 @@ function applyBillsRoomFilter() {
             const cells = row.querySelectorAll('td');
             if (cells.length < 5) return;
 
-            // เก็บเลขห้องต้นฉบับไว้ใน dataset
             if (!row.dataset.roomNumber) {
                 row.dataset.roomNumber = normalizeRoomNumber(cells[0].textContent);
             }
@@ -207,7 +211,6 @@ function applyBillsRoomFilter() {
             totalCount++;
             countsByRoom[room] = (countsByRoom[room] || 0) + 1;
 
-            // เติมชื่อผู้เช่าจากระบบจัดการผู้พักอาศัยลงใต้เลขห้อง
             const member = RoomFilterState.membersMap[room];
             let subLabel = cells[0].querySelector('.tenant-sub-label');
             if (!subLabel) {
@@ -223,7 +226,6 @@ function applyBillsRoomFilter() {
                 subLabel.textContent = 'ยังไม่มีข้อมูลผู้เช่า';
             }
 
-            // กรองการแสดงผลตามห้องที่เลือก
             const match =
                 RoomFilterState.selectedBillRoom === 'ALL' ||
                 room === RoomFilterState.selectedBillRoom;
@@ -232,7 +234,6 @@ function applyBillsRoomFilter() {
             if (match) visibleCount++;
         });
 
-        // ถ้าห้องที่เลือกยังไม่มีบิลเลย ให้แสดงข้อความแจ้งในตาราง
         if (visibleCount === 0 && RoomFilterState.selectedBillRoom !== 'ALL') {
             const room = RoomFilterState.selectedBillRoom;
             const member = RoomFilterState.membersMap[room];
@@ -264,7 +265,7 @@ function selectBillRoomFilter(room) {
     applyBillsRoomFilter();
 }
 
-// 4. ประมวลผลตาราง "รายการแจ้งซ่อม" (เติมชื่อผู้เช่า + กรองตามห้อง + อัปเดตตัวเลข KPI)
+// 4. ประมวลผลตาราง "รายการแจ้งซ่อม"
 function applyRepairsRoomFilter() {
     if (RoomFilterState.isApplying) return;
     RoomFilterState.isApplying = true;
@@ -281,7 +282,6 @@ function applyRepairsRoomFilter() {
         let totalCount = 0;
         let visibleCount = 0;
 
-        // ตัวนับสถิติตามห้องที่เลือก
         let statTotal = 0;
         let statPending = 0;
         let statProgress = 0;
@@ -300,7 +300,6 @@ function applyRepairsRoomFilter() {
             totalCount++;
             countsByRoom[room] = (countsByRoom[room] || 0) + 1;
 
-            // เติมชื่อผู้เช่าจากระบบจัดการผู้พักอาศัยลงใต้เลขห้องผู้แจ้ง
             const member = RoomFilterState.membersMap[room];
             let subLabel = cells[1].querySelector('.tenant-sub-label');
             if (!subLabel) {
@@ -332,7 +331,6 @@ function applyRepairsRoomFilter() {
             }
         });
 
-        // อัปเดตการ์ด KPI ด้านบนให้ตรงกับห้องที่เลือก
         const elTotal = document.getElementById('stat-total');
         const elPending = document.getElementById('stat-pending');
         const elProgress = document.getElementById('stat-progress');
@@ -342,7 +340,6 @@ function applyRepairsRoomFilter() {
         if (elProgress) elProgress.textContent = statProgress;
         if (elCompleted) elCompleted.textContent = statCompleted;
 
-        // ถ้าห้องที่เลือกยังไม่มีรายการแจ้งซ่อม
         if (visibleCount === 0 && RoomFilterState.selectedRepairRoom !== 'ALL') {
             const room = RoomFilterState.selectedRepairRoom;
             const member = RoomFilterState.membersMap[room];
@@ -374,7 +371,6 @@ function selectRepairRoomFilter(room) {
     applyRepairsRoomFilter();
 }
 
-// 5. เฝ้าดูการเปลี่ยนแปลงของตารางอัตโนมัติ (เมื่อเพิ่มผู้พักอาศัย / ออกบิล / แจ้งซ่อม / รีเฟรช)
 document.addEventListener('DOMContentLoaded', () => {
     const membersTbody = document.getElementById('admin-members-tbody');
     const billsTbody = document.getElementById('admin-bills-tbody');
@@ -406,7 +402,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }).observe(repairsTbody, { childList: true });
     }
 
-    // โหลดข้อมูลผู้พักอาศัยทันทีถ้าฟังก์ชันพร้อมใช้งาน
     if (typeof loadMembers === 'function') {
         loadMembers();
     }
